@@ -22,7 +22,19 @@ using HAModLoaderAPI;
 #else
             logDir = Path.Combine(Application.streamingAssetsPath, "Logs");
 #endif
-            if (!Directory.Exists(logDir)) Directory.CreateDirectory(logDir);
+#if UNITY_ANDROID
+    logDir = $"/storage/emulated/0/Android/media/{Application.identifier}/Logs";
+#elif UNITY_STANDALONE_WIN
+    logDir = Path.Combine(Application.dataPath, "../Logs");
+#elif UNITY_STANDALONE_LINUX
+    logDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "../.local/share/HAModLoader/Logs");
+#elif UNITY_STANDALONE_OSX
+    logDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "../Library/Application Support/HAModLoader/Logs");
+#else
+    logDir = Path.Combine(Application.streamingAssetsPath, "Logs");
+#endif
+
+        if (!Directory.Exists(logDir)) Directory.CreateDirectory(logDir);
             logFile = Path.Combine(logDir, $"ModLoader_{DateTime.Now:yyyyMMdd_HHmmss}.log");
             File.WriteAllText(logFile, $"[ModManager] Log started at {DateTime.Now}\n");
 
@@ -101,12 +113,17 @@ using HAModLoaderAPI;
 
         static string[] GetPlatformModPaths()
         {
+            string dir;
 #if UNITY_ANDROID
-        string dir = Path.Combine(Application.persistentDataPath, "Mods/Android");
+    dir = $"/storage/emulated/0/Android/media/{Application.identifier}/Mods";
 #elif UNITY_STANDALONE_WIN
-        string dir = Path.Combine(Application.dataPath, "Mods/Windows");
+    dir = Path.Combine(Application.dataPath, "../Mods");
+#elif UNITY_STANDALONE_LINUX
+    dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "../.local/share/HAModLoader/Mods");
+#elif UNITY_STANDALONE_OSX
+    dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "../Library/Application Support/HAModLoader/Mods");
 #else
-            string dir = Path.Combine(Application.streamingAssetsPath, "Mods/Other");
+    dir = Path.Combine(Application.streamingAssetsPath, "Mods");
 #endif
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
             return Directory.GetFiles(dir, "*.dll");
