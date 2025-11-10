@@ -2,7 +2,8 @@
 
 #HAModLoader
 
-![GitHub License](https://img.shields.io/github/license/Trident35ro/HAModLoader) ![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/Trident35ro/HAModLoader/latest/total) ![GitHub Release](https://img.shields.io/github/v/release/Trident35ro/HAModLoader) 
+![GitHub License](https://img.shields.io/github/license/Trident35ro/HAModLoader) ![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/Trident35ro/HAModLoader/latest/total) ![GitHub Release](https://img.shields.io/github/v/release/Trident35ro/HAModLoader)
+
 HAModLoader (HAML) is an multiplatform, community driven mod loader for the popular mobile game, Hybrid Animals. It is based on a very old version of game (v185) and modified to have mod loading capabilities and a proper API for modding.
 
 **DISCLAIMER: THIS TOOL WASN'T MADE FOR EXPLOITING VULNABILITIES/HACKING/BREAKING THE GAME'S ECONOMY. THIS TOOL IS ONLY FOR ADDING CUSTOM CONTENT INTO THE GAME OR CHANGING ALREADY EXISTENT CONTENT.**
