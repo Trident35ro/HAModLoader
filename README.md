@@ -1,4 +1,4 @@
-![](https://raw.githubusercontent.com/Trident35ro/HAModLoader/blob/8ffdbb3b04d90908c435156f025ad9a0cf93a816/haml_logo.png)
+![](haml_logo.png)
 
 # HAModLoader
 
