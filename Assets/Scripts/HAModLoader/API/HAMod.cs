@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace HAModLoaderAPI
 {
-    public abstract class HAMod
+    public interface HAMod
     {
         public string ModName => GetType().Name;
         public abstract void OnModLoad();
