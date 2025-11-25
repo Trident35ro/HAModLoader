@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.Linq;
-
+using HAModLoaderAPI;
 
 public static class LogManager
 {

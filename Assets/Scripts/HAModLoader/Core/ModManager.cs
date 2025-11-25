@@ -68,6 +68,7 @@ public class ModManager : MonoBehaviour
     {
         Log("[ModManager] Loading mods...");
         API = new HAModLoaderAPI.HAModLoaderAPI();
+        ModRegistry.APIInstance = API;
         string[] modPaths = GetPlatformModPaths();
 
         foreach (string path in modPaths)
@@ -157,4 +158,10 @@ public class ModManager : MonoBehaviour
             }
         }
     }
+}
+public static class ModRegistry
+{
+    internal static HAModLoaderAPI.HAModLoaderAPI APIInstance;
+
+    internal static HAMod[] LoadedMods => APIInstance?.loadedMods.ToArray() ?? Array.Empty<HAMod>();
 }
