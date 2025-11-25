@@ -10,17 +10,16 @@ namespace HAModLoaderAPI
         internal readonly List<HAMod> _loadedMods = new List<HAMod>();
         public ReadOnlyCollection<HAMod> loadedMods => _loadedMods.AsReadOnly();
 
-        public void RegisterMod(HAMod mod)
-        {
-            _loadedMods.Add(mod);
-            Debug.Log($"[HAModLoaderAPI] Registered mod: {mod.GetType().Name}");
-        }
-
         public GameObject SpawnPrefab(GameObject prefab, Vector3 pos)
         {
             var obj = Object.Instantiate(prefab, pos, Quaternion.identity);
             NotifyCreate(obj);
             return obj;
+        }
+
+        public void RegisterMod(HAMod mod)
+        {
+            _loadedMods.Add(mod);
         }
 
         internal void NotifyCreate(GameObject obj)

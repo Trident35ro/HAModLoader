@@ -8,8 +8,9 @@ using HAModLoaderAPI;
 
 public class ModManager : MonoBehaviour
 {
-    public HAModLoaderAPI.HAModLoaderAPI API;
+    internal HAModLoaderAPI.HAModLoaderAPI API;
     static string logFile;
+    public static string LogFilePath => logFile;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void Init()
@@ -38,35 +39,18 @@ public class ModManager : MonoBehaviour
         logFile = Path.Combine(logDir, $"ModLoader_{DateTime.Now:yyyyMMdd_HHmmss}.log");
         File.WriteAllText(logFile, $"[ModManager] Log started at {DateTime.Now}\n");
 
-        Debug.Log("[ModManager] Initializing before scene load...");
+        HAModLoaderAPI.Log.Info("[ModManager] Initializing before scene load...");
         GameObject go = new GameObject("ModManager");
         UnityEngine.Object.DontDestroyOnLoad(go);
         go.AddComponent<ModManager>().LoadMods();
-
-        Debug.Log("[ModManager] Mod loader initialized successfully.");
-    }
-
-    static void Log(string msg)
-    {
-        Debug.Log(msg);
-        try { File.AppendAllText(logFile, msg + "\n"); } catch { }
-    }
-
-    static void LogError(string msg)
-    {
-        Debug.LogError(msg);
-        try { File.AppendAllText(logFile, "[ERROR] " + msg + "\n"); } catch { }
-    }
-
-    static void LogWarning(string msg)
-    {
-        Debug.LogWarning(msg);
-        try { File.AppendAllText(logFile, "[WARN] " + msg + "\n"); } catch { }
+        Log.LogFile = logFile;
+        Log.GetLoadedMods = () => ModRegistry.LoadedMods;
+        HAModLoaderAPI.Log.Info("[ModManager] Mod loader initialized successfully.");
     }
 
     void LoadMods()
     {
-        Log("[ModManager] Loading mods...");
+        HAModLoaderAPI.Log.Info("[ModManager] Loading mods...");
         API = new HAModLoaderAPI.HAModLoaderAPI();
         ModRegistry.APIInstance = API;
         string[] modPaths = GetPlatformModPaths();
@@ -75,43 +59,43 @@ public class ModManager : MonoBehaviour
         {
             try
             {
-                Log($"[ModManager] Found DLL: {path}");
+                HAModLoaderAPI.Log.Info($"[ModManager] Found DLL: {path}");
                 Assembly asm = Assembly.Load(File.ReadAllBytes(path));
 
                 // Notify LoadItems of this assembly so it can scan HAItem-derived classes in the mod DLL
                 try
                 {
                     LoadItems.ScanAssembly(asm);
-                    Log($"[ModManager] ScanAssembly called for {Path.GetFileName(path)}");
+                    HAModLoaderAPI.Log.Info($"[ModManager] ScanAssembly called for {Path.GetFileName(path)}");
                 }
                 catch (Exception exScan)
                 {
-                    LogWarning($"[ModManager] LoadItems.ScanAssembly failed for {path}: {exScan}");
+                    HAModLoaderAPI.Log.Warning($"[ModManager] LoadItems.ScanAssembly failed for {path}: {exScan}");
                 }
 
                 var modType = asm.GetTypes().FirstOrDefault(t => typeof(HAMod).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
                 if (modType != null)
                 {
-                    HAMod mod = (HAMod)Activator.CreateInstance(modType);
-                    API.RegisterMod(mod);
+                    var mod = (HAMod)Activator.CreateInstance(modType);
+                    ModRegistry.RegisterMod(mod);
                     SafeInvoke(mod, "OnPreLoad", API);
-                    Log($"[ModManager] Loaded mod: {modType.FullName}");
+                    HAModLoaderAPI.Log.Info($"[ModManager] Loaded mod: {modType.FullName}");
                 }
-                else LogWarning($"[ModManager] No HAMod implementation found in {asm.FullName}");
+                else HAModLoaderAPI.Log.Warning($"[ModManager] No HAMod implementation found in {asm.FullName}");
             }
             catch (Exception ex)
             {
-                LogError($"[ModManager] Failed to load {path}\n{ex}");
+                HAModLoaderAPI.Log.Error($"[ModManager] Failed to load {path}\n{ex}");
             }
         }
 
-        Log("[ModManager] All mods preloaded.");
+        HAModLoaderAPI.Log.Info("[ModManager] All mods preloaded.");
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        Log($"[ModManager] Scene loaded: {scene.name}");
+        HAModLoaderAPI.Log.Info($"[ModManager] Scene loaded: {scene.name}");
         if (scene.name == "Menu")
             foreach (var mod in API.loadedMods) SafeInvoke(mod, "OnEnterMenu");
         else if (scene.name == "Game")
@@ -150,18 +134,12 @@ public class ModManager : MonoBehaviour
             try
             {
                 m.Invoke(mod, args);
-                Log($"[ModManager] {mod.GetType().Name}.{method} executed successfully.");
+                Log.Info($"[ModManager] {mod.GetType().Name}.{method} executed successfully.");
             }
             catch (Exception e)
             {
-                LogError($"[ModManager] Error in {mod.GetType().Name}.{method}: {e}");
+                Log.Error($"[ModManager] Error in {mod.GetType().Name}.{method}: {e}");
             }
         }
     }
-}
-public static class ModRegistry
-{
-    internal static HAModLoaderAPI.HAModLoaderAPI APIInstance;
-
-    internal static HAMod[] LoadedMods => APIInstance?.loadedMods.ToArray() ?? Array.Empty<HAMod>();
 }
