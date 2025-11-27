@@ -66,11 +66,8 @@ public class Loader : MonoBehaviour
     [HideInInspector]
     public Dictionary<Vector3, respawn> to_respawn_slotC = new Dictionary<Vector3, respawn>();
 
-    // Unity Ads placement ids
     private const string InterstitialPlacement = "Interstitial_Android";
     private const string RewardedPlacement = "Rewarded_Android";
-
-    // Unity Ads configuration (set in inspector or keep default)
     public string unityGameId = "YOUR_UNITY_GAME_ID";
     public bool unityTestMode = false;
 
@@ -124,13 +121,10 @@ public class Loader : MonoBehaviour
     {
         if (this == Instance)
         {
-            // Initialize Unity Ads with an initialization listener
             if (!Advertisement.isInitialized)
             {
                 Advertisement.Initialize(unityGameId, unityTestMode, new UnityAdsInitListener(this));
             }
-
-            // start loading placements
             TryRequestInterstitial();
             TryRequestRewardAd();
 
@@ -143,7 +137,6 @@ public class Loader : MonoBehaviour
         }
     }
 
-    // Use internal state rather than Advertisement.IsReady/GetPlacementState
     private bool PlacementReady(string placementId)
     {
         if (placementId == RewardedPlacement) return reward_ad_state == ad_state.ready_to_show;
@@ -165,6 +158,7 @@ public class Loader : MonoBehaviour
         {
             Debug.LogWarning("Load Rewarded failed: " + ex.Message);
             reward_ad_state = ad_state.REQUEST_AGAIN;
+            reward_video_complete = true;
         }
     }
 
@@ -227,7 +221,6 @@ public class Loader : MonoBehaviour
         }
     }
 
-    // Listener classes for com.unity.ads v4.x
     private class UnityAdsInitListener : IUnityAdsInitializationListener
     {
         private Loader parent;
@@ -235,7 +228,6 @@ public class Loader : MonoBehaviour
         public void OnInitializationComplete()
         {
             Debug.Log("[Loader] Unity Ads initialized");
-            // trigger initial loads
             parent.TryRequestInterstitial();
             parent.TryRequestRewardAd();
         }
@@ -255,7 +247,6 @@ public class Loader : MonoBehaviour
             if (placementId == Loader.RewardedPlacement) parent.reward_ad_state = ad_state.ready_to_show;
             if (placementId == Loader.InterstitialPlacement) parent.interstitial_ad_state = ad_state.ready_to_show;
 
-            // If user was waiting for reward, show it immediately
             if (placementId == Loader.RewardedPlacement && parent.wanting_to_view_reward)
             {
                 parent.wanting_to_view_reward = false;
@@ -309,47 +300,46 @@ public class Loader : MonoBehaviour
 
     private void OnAdFinished(string placementId, object rawShowResult)
     {
-        // This will only be used if you add a callback mechanism (AddListener or ShowOptions) for your Ads package.
-        // Leave body empty / or replicate previous reward handling if you wire callbacks.
+        // for when watching ads will be reintoduced
     }
 
     public void SHOW_AD(ad_context context)
     {
         switch (context)
         {
-        case ad_context.on_breeder:
-            if (PlayerData.Instance.GetGlobalInt("no_ads") != 1)
-            {
-                ADS_num_rebreeds++;
-                if (ADS_num_rebreeds >= 2 && PlacementReady(InterstitialPlacement))
+            case ad_context.on_breeder:
+                if (PlayerData.Instance.GetGlobalInt("no_ads") != 1)
                 {
-                    do_show_interstitial();
-                    ADS_num_rebreeds = 0;
+                    ADS_num_rebreeds++;
+                    if (ADS_num_rebreeds >= 2 && PlacementReady(InterstitialPlacement))
+                    {
+                        do_show_interstitial();
+                        ADS_num_rebreeds = 0;
+                    }
                 }
-            }
-            break;
-        case ad_context.after_few_levelups:
-            if (PlayerData.Instance.GetGlobalInt("no_ads") == 1)
-            {
                 break;
-            }
-            if (last_ad_skipped > 0)
-            {
-                if (Application.isEditor)
+            case ad_context.after_few_levelups:
+                if (PlayerData.Instance.GetGlobalInt("no_ads") == 1)
                 {
-                    PopupControl.Instance.ShowMessage("ADVERTISEMENT");
+                    break;
                 }
-                else if (PlacementReady(InterstitialPlacement))
+                if (last_ad_skipped > 0)
                 {
-                    do_show_interstitial();
+                    if (Application.isEditor)
+                    {
+                        PopupControl.Instance.ShowMessage("ADVERTISEMENT");
+                    }
+                    else if (PlacementReady(InterstitialPlacement))
+                    {
+                        do_show_interstitial();
+                    }
+                    last_ad_skipped--;
                 }
-                last_ad_skipped--;
-            }
-            else
-            {
-                PopupControl.Instance.ShowRewardAskPopup(true);
-            }
-            break;
+                else
+                {
+                    PopupControl.Instance.ShowRewardAskPopup(true);
+                }
+                break;
         }
     }
 
@@ -639,8 +629,6 @@ public class Loader : MonoBehaviour
         gameObject.GetComponent<creatureModel>().myName = myname;
         using (StreamReader streamReader = new StreamReader(path))
         {
-            // Use CultureInfo.InvariantCulture for all numeric parsing so Windows/locale differences
-            // (decimal separators etc.) do not break parsing of .tbc files which are dot-separated.
             gameObject.GetComponent<creatureModel>().height = float.Parse(streamReader.ReadLine(), CultureInfo.InvariantCulture);
             gameObject.GetComponent<creatureModel>().height_set = true;
             Color white = Color.white;
@@ -799,7 +787,6 @@ public class Loader : MonoBehaviour
         {
             wanting_to_view_reward = true;
             PopupControl.Instance.ShowConnecting("Loading Reward Ad");
-            // kick off a load immediately if not already requesting
             TryRequestRewardAd();
         }
     }
