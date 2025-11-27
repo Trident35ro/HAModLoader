@@ -14,15 +14,8 @@ public class HAModHandler
 
     public void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        HAModLoaderAPI.Log.Info($"[ModLifecycleHandler] Scene loaded: {scene.name}");
-
-        if (scene.name == "Menu")
-            foreach (var mod in API.loadedMods)
-                SafeInvoke(mod, "OnEnterMenu");
-
-        else if (scene.name == "Game")
-            foreach (var mod in API.loadedMods)
-                SafeInvoke(mod, "OnEnterGame");
+        foreach (var mod in API.loadedMods)
+            SafeInvoke(mod, "OnEnterScene", scene);
     }
 
     void Update()

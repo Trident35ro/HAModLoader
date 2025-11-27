@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace HAModLoaderAPI
 {
@@ -6,10 +7,10 @@ namespace HAModLoaderAPI
     {
         public string ModName => GetType().Name;
         public string ModAuthor => GetType().Name;
-        public abstract void OnModLoad();
-        public abstract void OnEnterMenu();
-        public abstract void OnEnterGame();
-        public abstract void OnCreate(UnityEngine.GameObject obj);
-        public abstract void Update();
+
+        public void OnModLoad() { }
+        public void OnEnterScene(Scene scene) { }
+        public void OnCreate(GameObject obj) { }
+        public void Update() { }
     }
 }
